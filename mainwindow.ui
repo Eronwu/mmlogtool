@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>370</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>400</width>
+    <height>370</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="QLabel" name="title">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>10</y>
+      <width>161</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>MSTAR MM 一键log分析工具</string>
+    </property>
+   </widget>
+   <widget class="QTextBrowser" name="inDataBrowser">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>60</y>
+      <width>341</width>
+      <height>81</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="title1">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>40</y>
+      <width>61</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>分析内容：</string>
+    </property>
+   </widget>
+   <widget class="QTextBrowser" name="outResultBrowser">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>170</y>
+      <width>341</width>
+      <height>81</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="title2">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>150</y>
+      <width>61</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>分析结果：</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="inDataButton">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>40</y>
+      <width>75</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>更多</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="outResultButton">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>150</y>
+      <width>75</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>更多</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="fileOpenButton">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>280</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>打开LOG</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="startButton">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>280</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>一键分析</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="openedLabel">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>260</y>
+      <width>54</width>
+      <height>12</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="outDiagramButton">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>150</y>
+      <width>75</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>图表分析</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="keepLogCheckBox">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>250</y>
+      <width>91</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>保留错误log</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="singleFileCheckBox">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>270</y>
+      <width>91</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>单文件分析</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="baojiCheckBox">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>290</y>
+      <width>91</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>切台LOG重叠</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>400</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuMENU">
+    <property name="title">
+     <string>MENU</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionABOUT"/>
+   </widget>
+   <addaction name="menuMENU"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionABOUT">
+   <property name="icon">
+    <iconset resource="mstarlogo.qrc">
+     <normaloff>:/new/myimages/mstarLogo.png</normaloff>:/new/myimages/mstarLogo.png</iconset>
+   </property>
+   <property name="text">
+    <string>ABOUT</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="mstarlogo.qrc"/>
+ </resources>
+ <connections/>
+</ui>
