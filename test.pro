@@ -29,23 +29,20 @@ SOURCES += \
         mainwindow.cpp \
     logindlg.cpp \
     versiondialog.cpp \
-    resultwindow.cpp \
-    ptsdiagram.cpp
+    resultwindow.cpp
 
 HEADERS += \
         mainwindow.h \
     stable.h \
     logindlg.h \
     versiondialog.h \
-    resultwindow.h \
-    ptsdiagram.h
+    resultwindow.h
 
 FORMS += \
         mainwindow.ui \
     logindlg.ui \
     versiondialog.ui \
-    resultwindow.ui \
-    ptsdiagram.ui
+    resultwindow.ui
 
 DISTFILES +=
 

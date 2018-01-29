@@ -5,6 +5,8 @@
 #include <qpainter.h>
 #include <qtextstream.h>
 #include <qfile.h>
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
 
 #define FOR_RELEASE 0
 
@@ -24,12 +26,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     verDlg(new VersionDialog),
     keywordWin(new resultWindow),
-    rltWin(new resultWindow),
-    ptsWin(new ptsDiagram)
+    rltWin(new resultWindow)
 {
     ui->setupUi(this);
     setWindowTitle(tr("MSTAR 一键LOG分析工具"));
     ui->outDiagramButton->setVisible(false);
+    ui->outDiagramlabel->setVisible(false);
+    ui->outDiagramSpinBox->setVisible(false);
 //    ui->baojiCheckBox->setStyleSheet("QPushButton:hover{}"
 #if 0
     QAction *openAction = new QAction(tr("&Open"), this);
@@ -74,10 +77,13 @@ bool MainWindow::openLogFile()
     QApplication::setOverrideCursor(Qt::WaitCursor);
 //    ui->temLogBrowser->setPlainText(logStream.readAll());
     QApplication::restoreOverrideCursor();
-    setWindowTitle(QFileInfo(logFileName).canonicalFilePath());
+//    setWindowTitle(QFileInfo(logFileName).canonicalFilePath());
+    setWindowTitle(QFileInfo(logFileName).fileName());
     ui->openedLabel->setStyleSheet("QLable{color: red;}");
     ui->openedLabel->setText(tr("打开成功"));
     ui->outDiagramButton->setVisible(false);
+    ui->outDiagramlabel->setVisible(false);
+    ui->outDiagramSpinBox->setVisible(false);
 
     return true;
 }
@@ -122,26 +128,13 @@ bool MainWindow::playbackIntegrityCheck(QFile *divLogFile, int playbackNo, int a
                                           "MstPlayer::reset",
                                           "MstPlayer::destructor",
                                           "MstPlayer::destructor Leave"};
-//if (!ui->baojiCheckBox->isChecked())
-//{
-//    else
-//    {
-//        checkListStr[] = new QString[]{ "MstPlayer::constructor",
-//                                      "MstPlayer::constructor Leave",
-//                                      "MstPlayer::setDataSource",
-//                                      "MstPlayer::prepareAsync",
-//                                      "MstPlayer::prepared",
-//                                      "MstPlayer::start",
-//                                      "MstPlayer::reset",
-//                                      "MstPlayer::destructor"};
-//    }
     int checkListLength = sizeof(checkListStr) / sizeof(checkListStr[0]);
     int i = 0;
     int ignoreLine = 0;
 
     divLogFile->seek(0);
     strResult += tr("\n[playback %1 integrity checking]\n").arg(playbackNo);
-    if (!ui->baojiCheckBox->isChecked()) checkListLength -= 1;
+    if (ui->baojiCheckBox->isChecked()) checkListLength -= 1;
     while (i < checkListLength) {
         logLine = divLogFile->readLine();
         if (logLine.contains(checkListStr[i]))
@@ -188,7 +181,7 @@ bool MainWindow::analyzeLogFile()
         QMessageBox::warning(this, tr("提示"), tr("log文件未打开！"));
         return false;
 #else
-        logFile.setFileName("D:/Qt/workstudio/build-test-Desktop_Qt_5_9_0_MinGW_32bit-Debug/test_log/404error.log");
+        logFile.setFileName("D:/Qt/workstudio/build-test-Desktop_Qt_5_9_0_MinGW_32bit-Debug/test_log/avs2localmmOK.log");
         if (!logFile.open(QFile::ReadOnly | QFile::Text))
         {
             QMessageBox::warning(this, tr("多文档编辑器"),
@@ -356,10 +349,10 @@ bool MainWindow::analyzeLogFile()
             }
         }
 
-        playbackLogFile[intPlaybackNo].close();
-        //delete ok log
-        if (!(bLogNoError == false && ui->keepLogCheckBox->isChecked()))
-            playbackLogFile[intPlaybackNo].remove();
+//        playbackLogFile[intPlaybackNo].close();
+//        //delete ok log
+//        if (!(bLogNoError == false && ui->keepLogCheckBox->isChecked()))
+//            playbackLogFile[intPlaybackNo].remove();
         intPlaybackNo++;
     }
     if (bLogNoError)
@@ -368,37 +361,124 @@ bool MainWindow::analyzeLogFile()
         ui->outResultBrowser->setText(strResult);
     QApplication::restoreOverrideCursor();
     ui->outDiagramButton->setVisible(true);
+    ui->outDiagramlabel->setVisible(true);
+    ui->outDiagramSpinBox->setVisible(true);
 
     return true;
 }
 
-void MainWindow::showDiagram()
+long long MainWindow::logTimeConvertMs(const QString logTimeStr)
 {
-    ptsWin->show();
+    // TODO: 先不弄日期的划分
+    int h, m, s, ms;
+
+    h = m = s = ms = 0;
+    h = logTimeStr.section(QRegExp("[:.]"), 0, 0).trimmed().toInt();
+    m = logTimeStr.section(QRegExp("[:.]"), 1, 1).trimmed().toInt();
+    s = logTimeStr.section(QRegExp("[:.]"), 2, 2).trimmed().toInt();
+    ms = logTimeStr.section(QRegExp("[:.]"), 3, 3, QString::SectionSkipEmpty).trimmed().toInt();
+//    qDebug() << "h:" << h << "m:" << m << "s:" << s << "ms:" << ms;
+    return h*60*60*1000 + m*60*1000 + s*1000 + ms;
+
 }
 
-//void MainWindow::on_testeditButton_clicked()
-//{
-//    if (ui->testEdit->document()->isModified())
-//    {
-//        QMessageBox warnBox;
-//        warnBox.setWindowTitle(tr("警告"));
-//        warnBox.setIcon(QMessageBox::Warning);
-//        warnBox.setText(tr("是否保存？"));
-//        QPushButton *yesBtn = warnBox.addButton(tr("是(&Y)"),
-//                                               QMessageBox::YesRole);
-//        warnBox.addButton(tr("否"), QMessageBox::NoRole);
-//        warnBox.exec();
-//        if (warnBox.clickedButton() == yesBtn)
-//            saveResultFile();
-    //    }
-//}
+int MainWindow::getLogPtsData(int data[][2], const QString ptsType)
+{
+    int playNo = ui->outDiagramSpinBox->value();
+    QString line;
+    QString timeStr;
+    QString tmp;
+    int dataRaw = 0;
+    long long timeMs = 0;
+    long long preTimeMs = 0;
+
+    // TODO: 按键后两个坐标系要互换
+    if (!playbackLogFile[playNo].isOpen())
+    {
+        QMessageBox::warning(this, tr("警告"), tr("没有第%1次播放的log\n总共只有%2次播放！").arg(playNo).arg(intPlayTime));
+        return 0;
+    }
+
+    playbackLogFile[playNo].seek(0);
+    while (!playbackLogFile[playNo].atEnd())
+    {
+        line = playbackLogFile[playNo].readLine().trimmed();
+        if (line == NULL)
+            continue;
+        if (!line.contains(ptsType))
+            continue;
+        timeStr = line.section(ptsType, 1, 1).trimmed();
+        data[dataRaw][0] = timeStr.section(",", 0, 0).trimmed().toInt();
+        tmp = line.section(" ", 1, 1).trimmed();
+//        qDebug() << "time:" << tmp;
+        timeMs = logTimeConvertMs(tmp);
+        data[dataRaw][1] = (preTimeMs != 0)?(timeMs - preTimeMs):0;
+        preTimeMs = timeMs;
+//        qDebug() << "pts:" << data[dataRaw][0] << "time:" << timeMs << "gaptime:" << data[dataRaw][1];
+        if (dataRaw++ >= DATA_RAW_MAX)
+        {
+            QMessageBox::warning(this, tr("警告"), tr("pts个数超过了数组最大行数:%1，只能部分显示").arg(DATA_RAW_MAX));
+            dataRaw--;
+            break;
+        } // TODO :check this CRASHED  DATA_RAW_MAX
+    }
+    return dataRaw;
+}
+
+QChart *MainWindow::createLineChart()
+{
+    QString ptsType;
+    int dataRaw;
+    QChart *chart = new QChart();
+    QLineSeries *series = new QLineSeries(chart);
+    QLineSeries *ptsSeries = new QLineSeries(chart);
+
+    chart->setTitle("Pts Diagram");
+    int ck_keepData[DATA_RAW_MAX][2];
+
+    memset(ck_keepData, 0, sizeof(ck_keepData));
+    ptsType = "ck_keep, pts:";
+    dataRaw = getLogPtsData(ck_keepData, ptsType);
+//    qDebug() << "dataraw:" << dataRaw;
+    for (int i=0; i< dataRaw; i++)
+    {
+//        qDebug() << "pts:" << ck_keepData[i][0] << "gaptime:" << ck_keepData[i][1];
+        series->append(ck_keepData[i][0], ck_keepData[i][1]);
+    }
+    series->setName("ck_keep");
+    chart->addSeries(series);
+
+    memset(ck_keepData, 0, sizeof(ck_keepData));
+    ptsType = " in_pts:";
+    dataRaw = getLogPtsData(ck_keepData, ptsType);
+    for (int i=0; i< dataRaw; i++)
+    {
+        qDebug() << "pts:" << ck_keepData[i][0] << "gaptime:" << ck_keepData[i][1];
+        ptsSeries->append(ck_keepData[i][0], ck_keepData[i][1]);
+    }
+    ptsSeries->setName("in_pts");
+    chart->addSeries(ptsSeries);
+
+    chart->createDefaultAxes();
+//    chart->setRenderHint(QPainter::Antialiasing, true);
+
+    return chart;
+}
+
+void MainWindow::showDiagram()
+{
+//    ptsWin->resize(900, 600);
+//    ptsWin->show();
+    QChartView *ptsChartView = new QChartView(createLineChart());
+    ptsChartView->resize(900, 600);
+    ptsChartView->show();
+}
 
 void MainWindow::on_actionABOUT_triggered()
 {
     verDlg->show();
-    if (verDlg->exec() == QDialog::Accepted)
-        return;
+//    if (verDlg->exec() == QDialog::Accepted)
+//        return;
 }
 
 void MainWindow::on_fileOpenButton_clicked()
@@ -416,7 +496,7 @@ void MainWindow::on_outResultButton_clicked()
     rltWin->show();
     rltWin->setWindowTitle(tr("结果显示"));
     rltWin->setBrowserText(strResult);
-//    rltWin->resize(800, 600);
+//    rltWin->resize(1000, 500);
     rltWin->setGeometry(100, 100, 1000, 500);
 }
 
