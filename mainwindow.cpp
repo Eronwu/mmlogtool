@@ -26,7 +26,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     verDlg(new VersionDialog),
     keywordWin(new resultWindow),
-    rltWin(new resultWindow)
+    rltWin(new resultWindow),
+    chartsWin(new QWidget),
+    axisX(new QComboBox()),
+    axisY(new QComboBox())
 {
     ui->setupUi(this);
     setWindowTitle(tr("MSTAR 一键LOG分析工具"));
@@ -45,6 +48,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    for (int i=0; i<intPlayTime; i++)
+    {
+        playbackLogFile[i].close();
+        //delete ok log
+        if (!(bLogNoError[i] == false && ui->keepLogCheckBox->isChecked()))
+            playbackLogFile[i].remove();
+    }
     delete verDlg;
     delete keywordWin;
     delete rltWin;
@@ -237,7 +247,7 @@ bool MainWindow::analyzeLogFile()
     strResult.clear();
     strResult += tr("****** maybe %1 playback in all ******\n").arg(intPlayTime);
 
-    bool bLogNoError = true;
+    memset(bLogNoError, true, sizeof(bLogNoError));
     while (intPlaybackNo < intPlayTime)
     {
         QString strKeyWordLine;
@@ -249,7 +259,7 @@ bool MainWindow::analyzeLogFile()
 
         strResult += tr("\n*** start analyze %1 playback error log ***\n").arg(intPlaybackNo);
         // playback integrity checking
-        bLogNoError &= playbackIntegrityCheck(&playbackLogFile[intPlaybackNo], intPlaybackNo, intPlayTime);
+        bLogNoError[intPlaybackNo] &= playbackIntegrityCheck(&playbackLogFile[intPlaybackNo], intPlaybackNo, intPlayTime);
 
         //play log error checking
         /***********************循环扫描改成check xml 优化效率？*****************/
@@ -301,7 +311,7 @@ bool MainWindow::analyzeLogFile()
                     {
                         strResult += strLogLine + "\n";
                         bHaveError = true;
-                        bLogNoError &= false;
+                        bLogNoError[intPlaybackNo] &= false;
                     }
                 }
                 if (bHaveError)
@@ -323,7 +333,7 @@ bool MainWindow::analyzeLogFile()
                         {
                             strResult += strLogLine + "\n";
                             bHaveError = true;
-                            bLogNoError &= false;
+                            bLogNoError[intPlaybackNo] &= false;
                         }
                     }
                 }
@@ -340,7 +350,7 @@ bool MainWindow::analyzeLogFile()
                     if (strLogLine.contains(strKeyWord))
                     {
                         cnt++;
-                        bLogNoError &= false;
+                        bLogNoError[intPlaybackNo] &= false;
                         if (temLine == NULL )temLine = strLogLine;
                     }
                 }
@@ -355,7 +365,9 @@ bool MainWindow::analyzeLogFile()
 //            playbackLogFile[intPlaybackNo].remove();
         intPlaybackNo++;
     }
-    if (bLogNoError)
+    bool noErr = true;
+    for (int i=0; i<intPlayTime; i++) noErr &= bLogNoError[i];
+    if (noErr)
         ui->outResultBrowser->setText(tr("小弟认为正常，可以关闭mantis"));
     else
         ui->outResultBrowser->setText(strResult);
@@ -430,48 +442,79 @@ QChart *MainWindow::createLineChart()
     QString ptsType;
     int dataRaw;
     QChart *chart = new QChart();
-    QLineSeries *series = new QLineSeries(chart);
-    QLineSeries *ptsSeries = new QLineSeries(chart);
-
-    chart->setTitle("Pts Diagram");
     int ck_keepData[DATA_RAW_MAX][2];
+    int axisXType = axisX->itemData(axisX->currentIndex()).toInt();
+    int axisYtype = axisY->itemData(axisY->currentIndex()).toInt();
 
+    qDebug() << "enter createLineChart()x:" << axisXType << "y:" << axisYtype;
+    QLineSeries *series = new QLineSeries(chart);
     memset(ck_keepData, 0, sizeof(ck_keepData));
-    ptsType = "ck_keep, pts:";
+    ptsType = ptsTypeTable[axisYtype].searchWord;
     dataRaw = getLogPtsData(ck_keepData, ptsType);
 //    qDebug() << "dataraw:" << dataRaw;
     for (int i=0; i< dataRaw; i++)
     {
-//        qDebug() << "pts:" << ck_keepData[i][0] << "gaptime:" << ck_keepData[i][1];
+//        qDebug() << "ck_keep:" << ck_keepData[i][0] << "gaptime:" << ck_keepData[i][1];
         series->append(ck_keepData[i][0], ck_keepData[i][1]);
     }
-    series->setName("ck_keep");
+    series->setName(ptsTypeTable[axisYtype].name);
     chart->addSeries(series);
 
-    memset(ck_keepData, 0, sizeof(ck_keepData));
-    ptsType = " in_pts:";
-    dataRaw = getLogPtsData(ck_keepData, ptsType);
-    for (int i=0; i< dataRaw; i++)
-    {
-        qDebug() << "pts:" << ck_keepData[i][0] << "gaptime:" << ck_keepData[i][1];
-        ptsSeries->append(ck_keepData[i][0], ck_keepData[i][1]);
-    }
-    ptsSeries->setName("in_pts");
-    chart->addSeries(ptsSeries);
-
+    chart->setTitle("Pts Diagram");
     chart->createDefaultAxes();
 //    chart->setRenderHint(QPainter::Antialiasing, true);
 
     return chart;
 }
 
+void MainWindow::freshChartsUI()
+{
+    ptsChartView->close();
+    ptsChartView = new QChartView(createLineChart());
+    baseLayout->addWidget(ptsChartView);
+    chartsWin->setLayout(baseLayout);
+    chartsWin->show();
+}
+
 void MainWindow::showDiagram()
 {
-//    ptsWin->resize(900, 600);
-//    ptsWin->show();
-    QChartView *ptsChartView = new QChartView(createLineChart());
+#if 1
+    const int ptsTypeTableRow = sizeof(ptsTypeTable) / sizeof(ptsTypeTable[0]);
+    qDebug() << "ptsTypeTableRow:" << ptsTypeTableRow;
+    for (int i=0; i<ptsTypeTableRow; i++)
+        axisX->addItem(ptsTypeTable[i].name, ptsTypeTable[i].num);\
+    for (int i=1; i<ptsTypeTableRow; i++)
+        axisY->addItem(ptsTypeTable[i].name, ptsTypeTable[i].num);\
+
+//    connect(axisX, SIGNAL(currentIndexChanged(int)), chartsWin->, SLOT(createLineChart()));
+//    connect(axisY, SIGNAL(currentIndexChanged(int)), chartsWin, SLOT(createLineChart()));
+    chartsWin->connect(axisX, SIGNAL(currentIndexChanged(int)), this, SLOT(freshChartsUI()));
+    chartsWin->connect(axisY, SIGNAL(currentIndexChanged(int)), this, SLOT(freshChartsUI()));
+    baseLayout = new QGridLayout();
+    settingsLayout = new QHBoxLayout();
+    settingsLayout->addWidget(new QLabel(tr("x坐标:")));
+    settingsLayout->addWidget(axisX);
+    settingsLayout->addWidget(new QLabel(tr("y坐标:")));
+    settingsLayout->addWidget(axisY);
+//    btn = new QPushButton();
+//    btn->setText(tr("更新"));
+//    settingsLayout->addWidget(btn);
+//    connect(btn, SIGNAL(clicked(bool)), this, SLOT(this->createLineChart()));
+//    connect(ui->fileOpenButton, &QPushButton::clicked, this, &createLineChart);
+    settingsLayout->addStretch();
+    ptsChartView = new QChartView(createLineChart());
+    baseLayout->addLayout(settingsLayout, 0, 0, 1, 4);
+    baseLayout->addWidget(ptsChartView);
+    chartsWin->setLayout(baseLayout);
+    chartsWin->resize(900, 600);
+    chartsWin->show();
+
+#else
+    ptsChartView = new QChartView(createLineChart());
     ptsChartView->resize(900, 600);
     ptsChartView->show();
+
+#endif
 }
 
 void MainWindow::on_actionABOUT_triggered()

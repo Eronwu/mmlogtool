@@ -163,7 +163,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>图表分析</string>
+     <string>PTS图表</string>
     </property>
    </widget>
    <widget class="QCheckBox" name="keepLogCheckBox">

@@ -6,6 +6,14 @@
 #include "versiondialog.h"
 #include "resultwindow.h"
 #include <QtCharts/QChartGlobal>
+#include <QComboBox>
+#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QGridLayout>
+
+QT_BEGIN_NAMESPACE
+class QComboBox;
+class QCheckBox;
+QT_END_NAMESPACE
 
 QT_CHARTS_BEGIN_NAMESPACE
 class QChartView;
@@ -20,6 +28,18 @@ QT_CHARTS_USE_NAMESPACE
 namespace Ui {
 class MainWindow;
 }
+
+static const struct {
+    const int num;
+    const char *name;
+    const char *searchWord;
+} ptsTypeTable[] = {
+    { 0, "defaultTime", "defaultTime" },
+    { 1, "ck_keep", "ck_keep, pts:" },
+    { 2, "in_pts", " in_pts:" },
+    { 3, "out_pts", " out_pts:" },
+    { 4, "dms_flip", "  pts = " }, // special search
+};
 
 class MainWindow : public QMainWindow
 {
@@ -42,6 +62,9 @@ private slots:
 
     void on_outDiagramButton_clicked();
 
+private Q_SLOTS:
+    void freshChartsUI();
+
 private:
     Ui::MainWindow *ui;
     VersionDialog *verDlg;
@@ -50,8 +73,16 @@ private:
     QFile logFile;
     QFile keyWordFile;
     QFile playbackLogFile[MAX_DIV_PLAYBACK_NUM];
+    bool bLogNoError[MAX_DIV_PLAYBACK_NUM];
     QString strResult;
     int intPlayTime;
+    QWidget *chartsWin;
+    QComboBox *axisX;
+    QComboBox *axisY;
+    QChartView *ptsChartView;
+    QGridLayout *baseLayout;
+    QHBoxLayout *settingsLayout;
+    QPushButton *btn;
 
     bool openLogFile();
     bool openKeywordXML();
