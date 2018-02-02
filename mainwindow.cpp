@@ -9,7 +9,7 @@
 #include <QtCharts/QLineSeries>
 
 
-#define FOR_RELEASE 0
+#define FOR_RELEASE 1
 
 /*
  * TODO:

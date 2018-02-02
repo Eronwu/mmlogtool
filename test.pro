@@ -44,10 +44,9 @@ FORMS += \
     versiondialog.ui \
     resultwindow.ui
 
-DISTFILES +=
-
 RC_ICONS = mstarlogo.ico
 PRECOMPILED_HEADER = stable.h
 
 RESOURCES += \
-    mstarlogo.qrc
+    mstarlogo.qrc \
+    keyword.xml

@@ -1,0 +1,66 @@
+#
+# keyword xml format
+# <grep_type><grep_word><err_msg><warning_cnt(if check_count_type)>
+#
+# enum grep_type{
+# default_type = 0,	// simple grep
+# check_value_type, // need check value correct
+# check_count_type, // need count num
+# }
+#
+
+#for test
+#<0><prepareAsync><test msg>
+
+
+#mediaplayer
+<0><MediaPlayer: error (><media player error, need search errno in mediaerror.h>
+<0><media server died><media server died, maybe core dump in some library>
+
+#demux module
+<0><init_demuxer_plugin fail!><Not support demuxer type>
+<0><demuxer open failed, error code><parsing header fail in demuxer>
+<0><no valid stream found><parsing done, but there is no audio/video stream>
+<0><init_audio_decoder fail><Not support audio decoder format>
+<0><init_video_decoder fail><Not support video decoder format>
+<0><audio decoder open fail><audio decoder open fail, return 0 is OK>
+#<1><player_open_video ret ><video decoder open fail, return 0 is OK><0> //need add function check value
+<0><Diff codec : Video codec:><video pid change issue>
+<1><[MMP] a_r><too many audio ringbuffer packets need to consume><150>
+<1><, v_r><too many video ringbuffer packets need to consume><150>
+
+#omx
+<2><Timed out waiting for output buffers:><1,maybe demux es ringbuffer empty, could be network slow or file read slow or demuxer parse issue;2, vdec hang on, should check  VDEC Get log><10>
+<0><[OMX] video decode error ret><OMX decode error>
+<0><[OMX] audio decode error ret><OMX decode error>
+
+#vdec module
+<0><Flush: Fail><vdec flush fail>
+<1><MsVdecVacancy: ><need to check the vacancy value whether larger than a certain num which can know display module error><250>
+<2><Error Code:><vdec error, try adjust drop percent, if these log too much, vdec issue><10>
+
+#adec module
+
+#cs module
+<0><HTTP/1.1 500 Internal Server Error><server 500 error, need check url starttime>
+<0><HTTP/1.0 302 Found><need check url is correct, or server problem>
+<0><HTTP/1.1 404 Not Found><server problem, can not get this web page>
+
+#pq
+<0><[_Task_CapturePushedInterlaceFrame] IsFieldOrderIncorrect!!!!! Need inverse Field order><contact lyndon>
+
+#hdmi
+<0><CHeck EDID fail><EDID msg read error, check hdmi line or else>
+
+#other wait add in
+<0><backtrace><backtrace here>
+#
+###basic function check (from start to end)
+#
+#1.seek part:
+#"[OMX] seek_sent!" ==>"seek done"
+#"[VO] flush done""[VD] flush done""[AD] flush done"
+#2.ck_keep gap time
+#  type:2, type:3
+#
+#log mm log check,for exm:in_pts not exist, need post dialog
