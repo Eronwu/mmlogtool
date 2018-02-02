@@ -34,17 +34,35 @@ enum {
     AXISX_USE_PTS,
 };
 
+enum {
+    AXISY_NONE,
+    AXISY_CK_KEEP,
+    AXISY_IN_PTS,
+    AXISY_OUT_PTS,
+    AXISY_AUD_IN_PTS,
+    AXISY_AUD_OUT_PTS,
+    AXISY_DMS_FLIP,
+    AXISY_RENDER_FRAME,
+    AXISY_SHOW_PTS,
+};
+/*
+ * TODO: omx's get and push msg
+ */
 static const struct {
     const int num;
     const char *name;
     const char *searchWord;
     const char *searchWord2;
 } ptsTypeTable[] = {
-    { 0, "ck_keep", "ck_keep, pts:", NULL },
-    { 1, "in_pts", " in_pts:", NULL },
-    { 2, "out_pts", " out_pts:", NULL },
-    { 3, "dms_flip", " dms_flip [", " pts = " }, // special search
-    { 4, "defaultCnt", "defaultCnt", NULL },
+    { AXISY_NONE, "NONE", "NONE", NULL },
+    { AXISY_CK_KEEP, "ck_keep", "ck_keep, pts:", NULL },
+    { AXISY_IN_PTS, "in_pts", " in_pts:", NULL },
+    { AXISY_OUT_PTS, "out_pts", " out_pts:", NULL },
+    { AXISY_AUD_IN_PTS, "aud_in_pts", " aud_in_pts: ", NULL },
+    { AXISY_AUD_OUT_PTS, "aud_out_pts", " aud_out_pts: ", NULL },
+    { AXISY_DMS_FLIP, "dms_flip", " dms_flip [", " pts = " },
+    { AXISY_RENDER_FRAME, "render_frame", "render_frame ", " pts = " },
+    { AXISY_SHOW_PTS, "showinPts", "showPts", NULL },
 };
 
 class MainWindow : public QMainWindow
@@ -81,15 +99,17 @@ private:
     VersionDialog *verDlg;
     resultWindow *keywordWin;
     resultWindow *rltWin;
+    QWidget *chartsWin;
     QFile logFile;
     QFile keyWordFile;
     QFile playbackLogFile[MAX_DIV_PLAYBACK_NUM];
     bool bLogNoError[MAX_DIV_PLAYBACK_NUM];
     QString strResult;
     int intPlayTime;
-    QWidget *chartsWin;
     QComboBox *axisX;
     QComboBox *axisY;
+    QComboBox *axisY2;
+    QComboBox *axisY3;
     QChartView *ptsChartView;
     QGridLayout *baseLayout;
     QHBoxLayout *settingsLayout;
@@ -99,10 +119,11 @@ private:
     bool openKeywordXML();
     bool playbackIntegrityCheck(QFile *logFile, int playbackNo, int allPlayTime);
     bool analyzeLogFile();
-    int getLogPtsData(int data[][2], const QString ptsType);
+    int getLogPtsData(int data[][2], const int ptsType);
     QChart *createLineChart();
     void showDiagram();
     long long logTimeConvertMs(const QString logTimeStr);
+    void initCharts();
 };
 
 #endif // MAINWINDOW_H
