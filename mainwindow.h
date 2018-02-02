@@ -124,6 +124,7 @@ private:
     void showDiagram();
     long long logTimeConvertMs(const QString logTimeStr);
     void initCharts();
+    void clearAllStatus();
 };
 
 #endif // MAINWINDOW_H

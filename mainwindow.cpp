@@ -9,7 +9,7 @@
 #include <QtCharts/QLineSeries>
 
 
-#define FOR_RELEASE 0
+#define FOR_RELEASE 1
 
 /*
  * TODO:
@@ -43,10 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowTitle(tr("MSTAR 一键LOG分析工具"));
-    ui->outDiagramButton->setVisible(false);
-    ui->outDiagramlabel->setVisible(false);
-    ui->outDiagramSpinBox->setVisible(false);
-
+    clearAllStatus();
     initCharts();
 
 //    ui->baojiCheckBox->setStyleSheet("QPushButton:hover{}"
@@ -61,6 +58,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    clearAllStatus();
+    delete verDlg;
+    delete keywordWin;
+    delete rltWin;
+    delete ui;
+}
+
+void MainWindow::clearAllStatus()
+{
+//    if (logFile.exists())
+//        logFile.close();
+    if (keyWordFile.exists())
+        keyWordFile.close();
     for (int i=0; i<intPlayTime; i++)
     {
         if (!playbackLogFile[i].exists())
@@ -70,10 +80,13 @@ MainWindow::~MainWindow()
         if (!(bLogNoError[i] == false && ui->keepLogCheckBox->isChecked()))
             playbackLogFile[i].remove();
     }
-    delete verDlg;
-    delete keywordWin;
-    delete rltWin;
-    delete ui;
+    strResult.clear();
+    intPlayTime = 0;
+    ui->outResultBrowser->setPlainText(NULL);
+    ui->inDataBrowser->setText(tr(NULL));
+    ui->outDiagramButton->setVisible(false);
+    ui->outDiagramlabel->setVisible(false);
+    ui->outDiagramSpinBox->setVisible(false);
 }
 
 void MainWindow::initCharts()
@@ -231,8 +244,10 @@ bool MainWindow::playbackIntegrityCheck(QFile *divLogFile, int playbackNo, int a
 
 bool MainWindow::analyzeLogFile()
 {
-    if (!logFile.exists())
+    clearAllStatus();
+    if (!logFile.isOpen())
     {
+        qDebug() << "enter analyze file logfile no exits";
 #if FOR_RELEASE
         QMessageBox::warning(this, tr("提示"), tr("log文件未打开！"));
         return false;
