@@ -8,7 +8,7 @@
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
 
-#define FOR_RELEASE 0
+#define FOR_RELEASE 1
 
 /*
  * TODO:
@@ -29,7 +29,8 @@ MainWindow::MainWindow(QWidget *parent) :
     rltWin(new resultWindow),
     chartsWin(new QWidget),
     axisX(new QComboBox()),
-    axisY(new QComboBox())
+    axisY(new QComboBox()),
+    intPlayTime(0)
 {
     ui->setupUi(this);
     setWindowTitle(tr("MSTAR 一键LOG分析工具"));
@@ -50,6 +51,8 @@ MainWindow::~MainWindow()
 {
     for (int i=0; i<intPlayTime; i++)
     {
+        if (!playbackLogFile[i].exists())
+            continue;
         playbackLogFile[i].close();
         //delete ok log
         if (!(bLogNoError[i] == false && ui->keepLogCheckBox->isChecked()))
@@ -358,11 +361,6 @@ bool MainWindow::analyzeLogFile()
                     strResult += temLine + "\n---ERROR: " + strKeyWordMsg + "\n" + "\n";
             }
         }
-
-//        playbackLogFile[intPlaybackNo].close();
-//        //delete ok log
-//        if (!(bLogNoError == false && ui->keepLogCheckBox->isChecked()))
-//            playbackLogFile[intPlaybackNo].remove();
         intPlaybackNo++;
     }
     bool noErr = true;
@@ -398,13 +396,12 @@ int MainWindow::getLogPtsData(int data[][2], const QString ptsType)
 {
     int playNo = ui->outDiagramSpinBox->value();
     QString line;
-    QString timeStr;
+    QString ptsStr;
     QString tmp;
     int dataRaw = 0;
     long long timeMs = 0;
     long long preTimeMs = 0;
 
-    // TODO: 按键后两个坐标系要互换
     if (!playbackLogFile[playNo].isOpen())
     {
         QMessageBox::warning(this, tr("警告"), tr("没有第%1次播放的log\n总共只有%2次播放！").arg(playNo).arg(intPlayTime));
@@ -419,14 +416,21 @@ int MainWindow::getLogPtsData(int data[][2], const QString ptsType)
             continue;
         if (!line.contains(ptsType))
             continue;
-        timeStr = line.section(ptsType, 1, 1).trimmed();
-        data[dataRaw][0] = timeStr.section(",", 0, 0).trimmed().toInt();
-        tmp = line.section(" ", 1, 1).trimmed();
-//        qDebug() << "time:" << tmp;
+
+        /* get pts */
+        if (ptsType.compare(ptsTypeTable[3].searchWord) != 0) //temporary use hard code
+            ptsStr = line.section(ptsType, 1, 1).trimmed();
+        else // for dms_flip
+            ptsStr = line.section(ptsTypeTable[4].searchWord2, 1, 1).trimmed();
+        data[dataRaw][0] = ptsStr.section(",", 0, 0).trimmed().toInt();
+
+        /* get logtime */
+        tmp = line.section(" ", 1, 1).trimmed(); // get 15:33:12.863
         timeMs = logTimeConvertMs(tmp);
+//                qDebug() << "time:" << tmp;
         data[dataRaw][1] = (preTimeMs != 0)?(timeMs - preTimeMs):0;
         preTimeMs = timeMs;
-//        qDebug() << "pts:" << data[dataRaw][0] << "time:" << timeMs << "gaptime:" << data[dataRaw][1];
+        qDebug() << "pts:" << data[dataRaw][0] << "time:" << timeMs << "gaptime:" << data[dataRaw][1];
         if (dataRaw++ >= DATA_RAW_MAX)
         {
             QMessageBox::warning(this, tr("警告"), tr("pts个数超过了数组最大行数:%1，只能部分显示").arg(DATA_RAW_MAX));
@@ -442,22 +446,29 @@ QChart *MainWindow::createLineChart()
     QString ptsType;
     int dataRaw;
     QChart *chart = new QChart();
-    int ck_keepData[DATA_RAW_MAX][2];
+    int ck_keepData[DATA_RAW_MAX][2]; // {pts, time_gap}
     int axisXType = axisX->itemData(axisX->currentIndex()).toInt();
     int axisYtype = axisY->itemData(axisY->currentIndex()).toInt();
 
-    qDebug() << "enter createLineChart()x:" << axisXType << "y:" << axisYtype;
+//    qDebug() << "enter createLineChart()x:" << axisXType << "y:" << axisYtype;
     QLineSeries *series = new QLineSeries(chart);
     memset(ck_keepData, 0, sizeof(ck_keepData));
-    ptsType = ptsTypeTable[axisYtype].searchWord;
+    ptsType = axisYtype==4?ptsTypeTable[0].searchWord:ptsTypeTable[axisYtype].searchWord; // hardcode
     dataRaw = getLogPtsData(ck_keepData, ptsType);
 //    qDebug() << "dataraw:" << dataRaw;
     for (int i=0; i< dataRaw; i++)
     {
 //        qDebug() << "ck_keep:" << ck_keepData[i][0] << "gaptime:" << ck_keepData[i][1];
-        series->append(ck_keepData[i][0], ck_keepData[i][1]);
+        if (axisYtype==4)
+            series->append(i, ck_keepData[i][0]);
+        else
+            series->append(axisXType==AXISX_USE_TIME?i:ck_keepData[i][0], ck_keepData[i][1]);
     }
     series->setName(ptsTypeTable[axisYtype].name);
+//    series->setColor(Qt::red);
+//    series->setPointLabelsFormat("hehe");]
+    series->setPointLabelsColor(Qt::red);
+    series->setPointsVisible(true);
     chart->addSeries(series);
 
     chart->setTitle("Pts Diagram");
@@ -465,6 +476,11 @@ QChart *MainWindow::createLineChart()
 //    chart->setRenderHint(QPainter::Antialiasing, true);
 
     return chart;
+}
+
+void MainWindow::addCharts()
+{
+
 }
 
 void MainWindow::freshChartsUI()
@@ -482,12 +498,11 @@ void MainWindow::showDiagram()
     const int ptsTypeTableRow = sizeof(ptsTypeTable) / sizeof(ptsTypeTable[0]);
     qDebug() << "ptsTypeTableRow:" << ptsTypeTableRow;
     for (int i=0; i<ptsTypeTableRow; i++)
-        axisX->addItem(ptsTypeTable[i].name, ptsTypeTable[i].num);\
-    for (int i=1; i<ptsTypeTableRow; i++)
-        axisY->addItem(ptsTypeTable[i].name, ptsTypeTable[i].num);\
+        axisY->addItem(ptsTypeTable[i].name, ptsTypeTable[i].num);
+//    for (int i=0; i<ptsTypeTableRow; i++)
+        axisX->addItem("dafaultTIME", AXISX_USE_TIME);
+        axisX->addItem("currentPTS", AXISX_USE_PTS);
 
-//    connect(axisX, SIGNAL(currentIndexChanged(int)), chartsWin->, SLOT(createLineChart()));
-//    connect(axisY, SIGNAL(currentIndexChanged(int)), chartsWin, SLOT(createLineChart()));
     chartsWin->connect(axisX, SIGNAL(currentIndexChanged(int)), this, SLOT(freshChartsUI()));
     chartsWin->connect(axisY, SIGNAL(currentIndexChanged(int)), this, SLOT(freshChartsUI()));
     baseLayout = new QGridLayout();
@@ -496,11 +511,10 @@ void MainWindow::showDiagram()
     settingsLayout->addWidget(axisX);
     settingsLayout->addWidget(new QLabel(tr("y坐标:")));
     settingsLayout->addWidget(axisY);
-//    btn = new QPushButton();
-//    btn->setText(tr("更新"));
-//    settingsLayout->addWidget(btn);
-//    connect(btn, SIGNAL(clicked(bool)), this, SLOT(this->createLineChart()));
-//    connect(ui->fileOpenButton, &QPushButton::clicked, this, &createLineChart);
+    btn = new QPushButton();
+    btn->setText(tr("增加"));
+    settingsLayout->addWidget(btn);
+    chartsWin->connect(btn, SIGNAL(clicked(bool)), this, SLOT(addCharts()));
     settingsLayout->addStretch();
     ptsChartView = new QChartView(createLineChart());
     baseLayout->addLayout(settingsLayout, 0, 0, 1, 4);

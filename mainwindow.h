@@ -29,16 +29,22 @@ namespace Ui {
 class MainWindow;
 }
 
+enum {
+    AXISX_USE_TIME,
+    AXISX_USE_PTS,
+};
+
 static const struct {
     const int num;
     const char *name;
     const char *searchWord;
+    const char *searchWord2;
 } ptsTypeTable[] = {
-    { 0, "defaultTime", "defaultTime" },
-    { 1, "ck_keep", "ck_keep, pts:" },
-    { 2, "in_pts", " in_pts:" },
-    { 3, "out_pts", " out_pts:" },
-    { 4, "dms_flip", "  pts = " }, // special search
+    { 0, "ck_keep", "ck_keep, pts:", NULL },
+    { 1, "in_pts", " in_pts:", NULL },
+    { 2, "out_pts", " out_pts:", NULL },
+    { 3, "dms_flip", " dms_flip [", " pts = " }, // special search
+    { 4, "defaultCnt", "defaultCnt", NULL },
 };
 
 class MainWindow : public QMainWindow
@@ -64,8 +70,13 @@ private slots:
 
 private Q_SLOTS:
     void freshChartsUI();
+    void addCharts();
 
 private:
+    //私有的class 变量命名之前要加m_prfix
+    //布尔型变量建议不要使用否定定义 bFound // SUGGESTED
+    //common words 禁止缩写 comp instead of compute
+    //get/set, add/remove, create/destroy, start/stop, insert/delete
     Ui::MainWindow *ui;
     VersionDialog *verDlg;
     resultWindow *keywordWin;

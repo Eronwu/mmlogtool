@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>版权所有，你有他有</string>
+    <string>版权所有，你有他有 V1.0</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
