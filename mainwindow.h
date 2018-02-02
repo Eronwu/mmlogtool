@@ -88,7 +88,6 @@ private slots:
 
 private Q_SLOTS:
     void freshChartsUI();
-    void addCharts();
 
 private:
     //私有的class 变量命名之前要加m_prfix

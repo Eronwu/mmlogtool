@@ -9,7 +9,7 @@
 #include <QtCharts/QLineSeries>
 
 
-#define FOR_RELEASE 1
+#define FOR_RELEASE 0
 
 /*
  * TODO:
@@ -105,6 +105,8 @@ void MainWindow::initCharts()
 
     chartsWin->connect(axisX, SIGNAL(currentIndexChanged(int)), this, SLOT(freshChartsUI()));
     chartsWin->connect(axisY, SIGNAL(currentIndexChanged(int)), this, SLOT(freshChartsUI()));
+    chartsWin->connect(axisY2, SIGNAL(currentIndexChanged(int)), this, SLOT(freshChartsUI()));
+    chartsWin->connect(axisY3, SIGNAL(currentIndexChanged(int)), this, SLOT(freshChartsUI()));
     settingsLayout->addWidget(new QLabel(tr("x坐标:")));
     settingsLayout->addWidget(axisX);
     settingsLayout->addWidget(new QLabel(tr("y坐标:")));
@@ -502,45 +504,42 @@ int MainWindow::getLogPtsData(int data[][2], const int ptsType)
 
 QChart *MainWindow::createLineChart()
 {
-    int ptsType;
     int dataRaw;
     QChart *chart = new QChart();
     int ck_keepData[DATA_RAW_MAX][2]; // {pts, time_gap}
     int axisXType = axisX->itemData(axisX->currentIndex()).toInt();
-    int axisYtype = axisY->itemData(axisY->currentIndex()).toInt();
+    int axisYtype[3] = {axisY->itemData(axisY->currentIndex()).toInt(),
+                        axisY2->itemData(axisY2->currentIndex()).toInt(),
+                        axisY3->itemData(axisY3->currentIndex()).toInt()};
 
-//    qDebug() << "enter createLineChart()x:" << axisXType << "y:" << axisYtype;
-    QLineSeries *series = new QLineSeries(chart);
-    memset(ck_keepData, 0, sizeof(ck_keepData));
-    ptsType = axisYtype==AXISY_SHOW_PTS?AXISY_IN_PTS:axisYtype;
-    dataRaw = getLogPtsData(ck_keepData, ptsType);
-//    qDebug() << "dataraw:" << dataRaw;
-    for (int i=0; i< dataRaw; i++)
+    for (int j=0; j<3; j++)
     {
-//        qDebug() << "ck_keep:" << ck_keepData[i][0] << "gaptime:" << ck_keepData[i][1];
-        if (axisYtype==AXISY_SHOW_PTS)
-            series->append(i, ck_keepData[i][0]);
-        else
-            series->append(axisXType==AXISX_USE_TIME?i:ck_keepData[i][0], ck_keepData[i][1]);
+        QLineSeries *series = new QLineSeries(chart);
+        memset(ck_keepData, 0, sizeof(ck_keepData));
+        dataRaw = getLogPtsData(ck_keepData, axisYtype[j]==AXISY_SHOW_PTS?AXISY_IN_PTS:axisYtype[j]);
+    //    qDebug() << "dataraw:" << dataRaw;
+        for (int i=0; i< dataRaw; i++)
+        {
+    //        qDebug() << "ck_keep:" << ck_keepData[i][0] << "gaptime:" << ck_keepData[i][1];
+            if (axisYtype[j]==AXISY_SHOW_PTS)
+                series->append(i, ck_keepData[i][0]);
+            else
+                series->append(axisXType==AXISX_USE_TIME?i:ck_keepData[i][0], ck_keepData[i][1]);
+        }
+        series->setName(ptsTypeTable[axisYtype[j]].name);
+    //    series->setColor(Qt::red);
+    //    series->setPointLabelsFormat("hehe");]
+    //    series->setPointLabelsColor(Qt::red);
+    //    series->setPen();
+//        series->setPointsVisible(true);
+        chart->addSeries(series);
     }
-    series->setName(ptsTypeTable[axisYtype].name);
-//    series->setColor(Qt::red);
-//    series->setPointLabelsFormat("hehe");]
-    series->setPointLabelsColor(Qt::red);
-//    series->setPen();
-    series->setPointsVisible(true);
-    chart->addSeries(series);
 
     chart->setTitle("Pts Diagram");
     chart->createDefaultAxes();
     chart->setAnimationOptions(QChart::SeriesAnimations);
 
     return chart;
-}
-
-void MainWindow::addCharts()
-{
-
 }
 
 void MainWindow::freshChartsUI()
