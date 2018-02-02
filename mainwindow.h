@@ -62,7 +62,7 @@ static const struct {
     { AXISY_AUD_OUT_PTS, "aud_out_pts", " aud_out_pts: ", NULL },
     { AXISY_DMS_FLIP, "dms_flip", " dms_flip [", " pts = " },
     { AXISY_RENDER_FRAME, "render_frame", "render_frame ", " pts = " },
-    { AXISY_SHOW_PTS, "showinPts", "showPts", NULL },
+    { AXISY_SHOW_PTS, "showInPts", "showPts", NULL },
 };
 
 class MainWindow : public QMainWindow

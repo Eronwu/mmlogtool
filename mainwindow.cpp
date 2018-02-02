@@ -462,7 +462,7 @@ int MainWindow::getLogPtsData(int data[][2], const int ptsType)
 
         /* get pts */
         if (ptsTypeTable[ptsType].searchWord2 == NULL)
-            ptsStr = line.section(ptsType, 1, 1).trimmed();
+            ptsStr = line.section(ptsTypeTable[ptsType].searchWord, 1, 1).trimmed();
         else
             ptsStr = line.section(ptsTypeTable[ptsType].searchWord2, 1, 1).trimmed();
         data[dataRaw][0] = ptsStr.section(",", 0, 0).trimmed().toInt();
@@ -518,7 +518,7 @@ QChart *MainWindow::createLineChart()
 
     chart->setTitle("Pts Diagram");
     chart->createDefaultAxes();
-    chart->setAnimationOptions(QChart::GridAxisAnimations);
+    chart->setAnimationOptions(QChart::SeriesAnimations);
 
     return chart;
 }
@@ -540,7 +540,7 @@ void MainWindow::freshChartsUI()
     baseLayout->addWidget(ptsChartView);
 //    baseLayout->setHorizontalSpacing(100);
     chartsWin->setLayout(baseLayout);
-    ptsChartView->resize(900, 600);
+    chartsWin->resize(900, 600);
     chartsWin->show();
     ptsChartView->setRenderHint(QPainter::Antialiasing, true);
 }
