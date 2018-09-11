@@ -80,6 +80,11 @@ void MainWindow::clearAllStatus()
         if (!(bLogNoError[i] == false && ui->keepLogCheckBox->isChecked()))
             playbackLogFile[i].remove();
     }
+    if (ptsChartView != NULL)
+    {
+        ptsChartView->close();
+        baseLayout->destroyed(ptsChartView);
+    }
     strResult.clear();
     intPlayTime = 0;
     ui->outResultBrowser->setPlainText(NULL);
