@@ -258,7 +258,7 @@ bool MainWindow::analyzeLogFile()
     {
         qDebug() << "enter analyze file logfile no exits";
 #if FOR_RELEASE
-        QMessageBox::warning(this, tr("提示"), tr("log文件未打开！"));
+        QMessageBox::warning(this, tr("提示"), tr("log文件未打开!"));
         return false;
 #else
         logFile.setFileName("D:/Qt/workstudio/build-test-Desktop_Qt_5_9_0_MinGW_32bit-Debug/test_log/avs2localmmOK.log");
@@ -287,7 +287,7 @@ bool MainWindow::analyzeLogFile()
 
     if (intPlayTime > MAX_DIV_PLAYBACK_NUM)
     {
-        QMessageBox::warning(this, tr("警告！"),
+        QMessageBox::warning(this, tr("警告!"), \
                              tr("log播放次数%1超过程序分析限制，请联系修改").arg(intPlayTime));
         return false;
     }
@@ -500,7 +500,7 @@ int MainWindow::getLogPtsData(int data[][2], const int ptsType)
 //        qDebug() << "pts:" << data[dataRaw][0] << "time:" << timeMs << "gaptime:" << data[dataRaw][1];
         if (dataRaw++ >= DATA_RAW_MAX)
         {
-            QMessageBox::warning(this, tr("警告"), tr("pts个数超过了数组最大行数:%1，只能部分显示").arg(DATA_RAW_MAX));
+            QMessageBox::warning(this, tr("警告"), tr("pts个数超过了数组最大行数:%1,只能部分显示").arg(DATA_RAW_MAX));
             dataRaw--;
             break;
         } // TODO :check this CRASHED  DATA_RAW_MAX
