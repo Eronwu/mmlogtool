@@ -46,7 +46,6 @@
 
 #cs module
 <0><HTTP/1.1 500 Internal Server Error><server 500 error, need check url starttime>
-<0><HTTP/1.0 302 Found><need check url is correct, or server problem>
 <0><HTTP/1.1 404 Not Found><server problem, can not get this web page>
 
 #pq

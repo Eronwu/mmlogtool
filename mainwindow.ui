@@ -235,7 +235,7 @@
      <x>0</x>
      <y>0</y>
      <width>400</width>
-     <height>23</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMENU">
@@ -243,6 +243,7 @@
      <string>MENU</string>
     </property>
     <addaction name="separator"/>
+    <addaction name="actionREADME"/>
     <addaction name="actionABOUT"/>
    </widget>
    <addaction name="menuMENU"/>
@@ -266,6 +267,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionREADME">
+   <property name="text">
+    <string>README</string>
    </property>
   </action>
  </widget>

@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     keywordWin(new resultWindow),
     rltWin(new resultWindow),
     chartsWin(new QWidget),
+    readMeWin(new ReadMeWeb),
     intPlayTime(0),
     axisX(new QComboBox()),
     axisY(new QComboBox()),
@@ -62,6 +63,7 @@ MainWindow::~MainWindow()
     delete verDlg;
     delete keywordWin;
     delete rltWin;
+    delete readMeWin;
     delete ui;
 }
 
@@ -122,7 +124,7 @@ void MainWindow::initCharts()
     settingsLayout->addWidget(axisY3);
     btn->setText(tr("异常LOG显示"));
     settingsLayout->addWidget(btn);
-    chartsWin->connect(btn, SIGNAL(clicked(bool)), this, SLOT(addCharts()));
+//    chartsWin->connect(btn, SIGNAL(clicked(bool)), this, SLOT(addCharts()));
     settingsLayout->addStretch();
     baseLayout->addLayout(settingsLayout, 0, 0, 1, 8);
 }
@@ -614,4 +616,10 @@ void MainWindow::on_inDataButton_clicked()
 void MainWindow::on_outDiagramButton_clicked()
 {
     showDiagram();
+}
+
+void MainWindow::on_actionREADME_triggered()
+{
+//    readMeWin->show();
+
 }

@@ -5,6 +5,7 @@
 #include <qfile.h>
 #include "versiondialog.h"
 #include "resultwindow.h"
+#include "readmeweb.h"
 #include <QtCharts/QChartGlobal>
 #include <QComboBox>
 #include <QtWidgets/QFormLayout>
@@ -89,6 +90,8 @@ private slots:
 private Q_SLOTS:
     void freshChartsUI();
 
+    void on_actionREADME_triggered();
+
 private:
     //私有的class 变量命名之前要加m_prfix
     //布尔型变量建议不要使用否定定义 bFound // SUGGESTED
@@ -98,6 +101,7 @@ private:
     VersionDialog *verDlg;
     resultWindow *keywordWin;
     resultWindow *rltWin;
+    ReadMeWeb *readMeWin;
     QWidget *chartsWin;
     QFile logFile;
     QFile keyWordFile;

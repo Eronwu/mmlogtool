@@ -4,8 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
-QT       += charts
+QT       += core gui charts
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -29,20 +28,23 @@ SOURCES += \
         mainwindow.cpp \
     logindlg.cpp \
     versiondialog.cpp \
-    resultwindow.cpp
+    resultwindow.cpp \
+    readmeweb.cpp
 
 HEADERS += \
         mainwindow.h \
     stable.h \
     logindlg.h \
     versiondialog.h \
-    resultwindow.h
+    resultwindow.h \
+    readmeweb.h
 
 FORMS += \
         mainwindow.ui \
     logindlg.ui \
     versiondialog.ui \
-    resultwindow.ui
+    resultwindow.ui \
+    readmeweb.ui
 
 RC_ICONS = mstarlogo.ico
 PRECOMPILED_HEADER = stable.h
